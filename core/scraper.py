@@ -12,7 +12,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -26,11 +25,12 @@ def limpar_nome(nome: str) -> str:
 
 def iniciar_driver(download_dir: str):
     options = Options()
-    options.add_argument("--headless=new")
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
+    options.add_argument("--disable-popup-blocking")
     options.add_argument(f"user-agent={USER_AGENT}")
 
     prefs = {
@@ -42,7 +42,30 @@ def iniciar_driver(download_dir: str):
     }
     options.add_experimental_option("prefs", prefs)
 
-    service = Service(ChromeDriverManager().install())
+    # Detecta ambiente: Streamlit Cloud usa Chromium do sistema
+    # Em local, usa webdriver-manager como fallback
+    CHROMIUM_PATHS = [
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+    ]
+    CHROMEDRIVER_PATHS = [
+        "/usr/bin/chromedriver",
+        "/usr/lib/chromium/chromedriver",
+        "/usr/lib/chromium-browser/chromedriver",
+    ]
+
+    chromium_bin = next((p for p in CHROMIUM_PATHS if os.path.exists(p)), None)
+    chromedriver_bin = next((p for p in CHROMEDRIVER_PATHS if os.path.exists(p)), None)
+
+    if chromium_bin and chromedriver_bin:
+        # Streamlit Cloud: usa binários do sistema
+        options.binary_location = chromium_bin
+        service = Service(chromedriver_bin)
+    else:
+        # Local: usa webdriver-manager
+        from webdriver_manager.chrome import ChromeDriverManager
+        service = Service(ChromeDriverManager().install())
+
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(120)
     driver.execute_cdp_cmd(
