@@ -1,14 +1,13 @@
-import streamlit as st
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 import io
 import os
+import streamlit as st
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 
 def get_drive_service():
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
     info = dict(st.secrets["gcp_service_account"])
     creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
     return build("drive", "v3", credentials=creds)
@@ -39,6 +38,7 @@ def get_or_create_folder(service, folder_name, parent_id=None):
 
 def upload_excel(local_path: str, drive_folder_name: str, file_name: str) -> str:
     """Faz upload do Excel gerado para o Google Drive. Retorna o link."""
+    from googleapiclient.http import MediaFileUpload
     service = get_drive_service()
     folder_id = get_or_create_folder(service, drive_folder_name)
 

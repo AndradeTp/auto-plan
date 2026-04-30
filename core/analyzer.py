@@ -3,7 +3,6 @@ import pathlib
 import re
 import time
 import unicodedata
-import google.generativeai as genai
 
 PALAVRAS_IGNORADAS = [
     "questões comentadas", "questoes comentadas",
@@ -116,6 +115,7 @@ def analisar_pdf(
         log(f"⏭️ Ignorado (conteúdo não teórico): {nome_arq[:55]}")
         return []
 
+    import google.generativeai as genai
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel(model_name)
 
