@@ -95,43 +95,35 @@ def extrair_aula(*textos) -> str:
 
 
 def formatar_referencia(aula, inicio, fim, fim_total, dividida, topicos=None) -> str:
+    # Sempre mostra os nomes dos assuntos do bloco na referência
     sufixo = ""
-    if dividida and topicos:
-        nomes = [t for t in topicos if t][:3]
+    if topicos:
+        nomes = [t for t in topicos if t]
         if nomes:
-            sufixo = " | " + " · ".join(nomes)
+            sufixo = " - " + ", ".join(nomes)
 
     if not dividida:
-        return f"{aula} - Da Pag {inicio} até Pag {fim}"
+        return f"{aula} - Da Pag {inicio} até Pag {fim}{sufixo}"
     if fim >= fim_total:
         return f"{aula} - Da Pag {inicio} até o fim{sufixo}"
     return f"{aula} - Da Pag {inicio} até Pag {fim}{sufixo}"
 
 
 def montar_blocos(df_aula: pd.DataFrame, max_paginas: int = 50) -> list[dict]:
-    """Agrupa tópicos em blocos de até max_paginas.
-    - Nunca corta um tópico ao meio quando ele cabe no limite.
-    - Tópicos maiores que o limite são divididos em sub-blocos de max_paginas.
+    """Empacotamento guloso por SOMA real de páginas.
+    - Nunca quebra um assunto no meio.
+    - Tenta manter blocos próximos de max_paginas.
+    - Se um assunto sozinho passar do limite, vira bloco próprio (tamanho que for).
+    - Rastreia os nomes dos assuntos de cada bloco para a referência.
     """
     blocos = []
-    bloco_inicio = bloco_fim = paginas = None
+    bloco_inicio = bloco_fim = None
+    paginas_soma = 0
     topicos_bloco = []
-
-    def fechar_bloco():
-        nonlocal bloco_inicio, bloco_fim, paginas, topicos_bloco
-        if bloco_inicio is not None:
-            blocos.append({
-                "Pagina_Inicial": bloco_inicio,
-                "Pagina_Final": bloco_fim,
-                "Paginas": paginas,
-                "Topicos": topicos_bloco,
-            })
-            bloco_inicio = bloco_fim = paginas = None
-            topicos_bloco = []
 
     for _, row in df_aula.iterrows():
         inicio = int(row["Pagina_Inicial"])
-        fim = int(row["Pagina_Final"])
+        fim    = int(row["Pagina_Final"])
         topico = str(row.get("Topico_Interno") or row.get("Assunto_Geral") or "").strip()
 
         if fim < inicio:
@@ -139,38 +131,38 @@ def montar_blocos(df_aula: pd.DataFrame, max_paginas: int = 50) -> list[dict]:
 
         pgs = (fim - inicio) + 1
 
-        # Tópico isolado maior que o limite → fecha bloco atual e divide em sub-blocos
-        if pgs > max_paginas:
-            fechar_bloco()
-            total_partes = -(-pgs // max_paginas)  # divisão com teto
-            for parte in range(total_partes):
-                sub_ini = inicio + parte * max_paginas
-                sub_fim = min(sub_ini + max_paginas - 1, fim)
-                sub_pgs = sub_fim - sub_ini + 1
-                label = f"{topico} ({parte + 1}/{total_partes})" if topico else f"Parte {parte + 1}/{total_partes}"
-                blocos.append({
-                    "Pagina_Inicial": sub_ini,
-                    "Pagina_Final": sub_fim,
-                    "Paginas": sub_pgs,
-                    "Topicos": [label],
-                })
-            continue
-
-        # Tópico cabe no bloco atual
         if bloco_inicio is None:
-            bloco_inicio, bloco_fim, paginas = inicio, fim, pgs
+            bloco_inicio  = inicio
+            bloco_fim     = fim
+            paginas_soma  = pgs
             topicos_bloco = [topico] if topico else []
-        elif paginas + pgs <= max_paginas:
-            bloco_fim = fim
-            paginas += pgs
+
+        elif paginas_soma + pgs <= max_paginas:
+            bloco_fim     = fim
+            paginas_soma += pgs
             if topico and topico not in topicos_bloco:
                 topicos_bloco.append(topico)
+
         else:
-            fechar_bloco()
-            bloco_inicio, bloco_fim, paginas = inicio, fim, pgs
+            blocos.append({
+                "Pagina_Inicial": bloco_inicio,
+                "Pagina_Final":   bloco_fim,
+                "Paginas":        paginas_soma,
+                "Topicos":        topicos_bloco,
+            })
+            bloco_inicio  = inicio
+            bloco_fim     = fim
+            paginas_soma  = pgs
             topicos_bloco = [topico] if topico else []
 
-    fechar_bloco()
+    if bloco_inicio is not None:
+        blocos.append({
+            "Pagina_Inicial": bloco_inicio,
+            "Pagina_Final":   bloco_fim,
+            "Paginas":        paginas_soma,
+            "Topicos":        topicos_bloco,
+        })
+
     return blocos
 
 
