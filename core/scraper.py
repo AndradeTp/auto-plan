@@ -4,14 +4,20 @@ import glob
 import time
 import shutil
 import requests
-import streamlit as st
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+
+# Selenium é importado de forma lazy (dentro das funções) para evitar
+# ModuleNotFoundError no Streamlit Cloud antes do ambiente estar pronto.
+# Python cacheia os módulos, então múltiplas chamadas não têm custo extra.
+def _sel():
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    return webdriver, Options, Service, By, Keys, WebDriverWait, EC
+
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -24,6 +30,8 @@ def limpar_nome(nome: str) -> str:
 
 
 def iniciar_driver(download_dir: str):
+    webdriver, Options, Service, By, Keys, WebDriverWait, EC = _sel()
+
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
@@ -58,11 +66,9 @@ def iniciar_driver(download_dir: str):
     chromedriver_bin = next((p for p in CHROMEDRIVER_PATHS if os.path.exists(p)), None)
 
     if chromium_bin and chromedriver_bin:
-        # Streamlit Cloud: usa binários do sistema
         options.binary_location = chromium_bin
         service = Service(chromedriver_bin)
     else:
-        # Local: usa webdriver-manager
         from webdriver_manager.chrome import ChromeDriverManager
         service = Service(ChromeDriverManager().install())
 
@@ -76,6 +82,7 @@ def iniciar_driver(download_dir: str):
 
 
 def limpar_popups(driver):
+    _, _, _, By, Keys, _, _ = _sel()
     try:
         driver.execute_script("""
             document.querySelectorAll(
@@ -103,6 +110,8 @@ def scroll_pagina(driver, max_scrolls=8, pausa=1.5):
 
 
 def realizar_login(driver, email: str, senha: str, url_login: str):
+    _, _, _, By, Keys, WebDriverWait, EC = _sel()
+
     driver.get(url_login)
     time.sleep(5)
     limpar_popups(driver)
@@ -146,6 +155,8 @@ def realizar_login(driver, email: str, senha: str, url_login: str):
 
 
 def listar_disciplinas(driver, url_pacote: str) -> list[dict]:
+    _, _, _, By, _, WebDriverWait, EC = _sel()
+
     driver.get(url_pacote)
     time.sleep(5)
     limpar_popups(driver)
@@ -228,6 +239,8 @@ def baixar_pdf_requests(url: str, destino: str, driver) -> tuple[bool, str]:
 
 
 def encontrar_link_pdf(aula_el):
+    _, _, _, By, _, _, _ = _sel()
+
     for el in aula_el.find_elements(By.XPATH, ".//a[@href]"):
         href = (el.get_attribute("href") or "").lower()
         texto = " ".join(filter(None, [el.text, el.get_attribute("title"), el.get_attribute("aria-label")])).lower()
@@ -248,6 +261,8 @@ def baixar_pdfs_disciplina(
     driver, url_disciplina: str, pasta_tmp: str, log_fn=None
 ) -> list[str]:
     """Retorna lista de caminhos dos PDFs baixados."""
+    _, _, _, By, _, WebDriverWait, EC = _sel()
+
     def log(msg):
         if log_fn:
             log_fn(msg)
