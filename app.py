@@ -135,7 +135,7 @@ with col_title:
     st.markdown("Gere planos de estudo completos a partir dos seus cursos no Estratégia Concursos.")
 with col_badge:
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("**Powered by** `Gemini AI`")
+    st.markdown("**Criado por:** Thiago Paiva")
 
 st.divider()
 
