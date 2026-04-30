@@ -105,6 +105,9 @@ def analisar_pdf(
 
     import os
     nome_arq = os.path.basename(caminho)
+    # Usa o caminho COMPLETO como chave única para evitar que PDFs de pastas
+    # diferentes (disciplinas distintas) com o mesmo nome sejam mesclados no groupby
+    caminho_completo = os.path.abspath(caminho)
 
     if not dados_web:
         dados_web = {"Disciplina_Site": "Indefinida", "Nome_Arquivo_Sugerido": nome_arq, "Link_Aula": "", "Descricao_Conteudo_Site": ""}
@@ -162,7 +165,8 @@ def analisar_pdf(
 
                 saida.append({
                     "Disciplina": dados_web.get("Disciplina_Site", "Indefinida"),
-                    "Arquivo": nome_arq,
+                    "Arquivo": caminho_completo,   # caminho completo = chave única por PDF
+                    "Nome_Arquivo": nome_arq,       # nome curto para exibição
                     "Nome_Arquivo_Sugerido": dados_web.get("Nome_Arquivo_Sugerido", nome_arq),
                     "Assunto_Geral": topico,
                     "Descricao_Conteudo_Site": dados_web.get("Descricao_Conteudo_Site", ""),

@@ -1,3 +1,4 @@
+import os
 import re
 import unicodedata
 import pandas as pd
@@ -83,8 +84,10 @@ def extrair_aula(*textos) -> str:
     for texto in textos:
         if not isinstance(texto, str):
             continue
+        # Se for caminho completo, usa só o basename para a extração
+        candidato = os.path.basename(texto) if os.sep in texto or "/" in texto else texto
         for padrao in padroes:
-            match = re.search(padrao, texto, flags=re.IGNORECASE)
+            match = re.search(padrao, candidato, flags=re.IGNORECASE)
             if match:
                 aula = re.sub(r"\s+", " ", match.group(1)).strip()
                 return aula.replace("aula", "Aula").replace("AULA", "Aula")
@@ -106,10 +109,25 @@ def formatar_referencia(aula, inicio, fim, fim_total, dividida, topicos=None) ->
 
 
 def montar_blocos(df_aula: pd.DataFrame, max_paginas: int = 50) -> list[dict]:
-    """Agrupa tópicos em blocos respeitando fronteiras — nunca corta tópico ao meio."""
+    """Agrupa tópicos em blocos de até max_paginas.
+    - Nunca corta um tópico ao meio quando ele cabe no limite.
+    - Tópicos maiores que o limite são divididos em sub-blocos de max_paginas.
+    """
     blocos = []
     bloco_inicio = bloco_fim = paginas = None
     topicos_bloco = []
+
+    def fechar_bloco():
+        nonlocal bloco_inicio, bloco_fim, paginas, topicos_bloco
+        if bloco_inicio is not None:
+            blocos.append({
+                "Pagina_Inicial": bloco_inicio,
+                "Pagina_Final": bloco_fim,
+                "Paginas": paginas,
+                "Topicos": topicos_bloco,
+            })
+            bloco_inicio = bloco_fim = paginas = None
+            topicos_bloco = []
 
     for _, row in df_aula.iterrows():
         inicio = int(row["Pagina_Inicial"])
@@ -121,6 +139,24 @@ def montar_blocos(df_aula: pd.DataFrame, max_paginas: int = 50) -> list[dict]:
 
         pgs = (fim - inicio) + 1
 
+        # Tópico isolado maior que o limite → fecha bloco atual e divide em sub-blocos
+        if pgs > max_paginas:
+            fechar_bloco()
+            total_partes = -(-pgs // max_paginas)  # divisão com teto
+            for parte in range(total_partes):
+                sub_ini = inicio + parte * max_paginas
+                sub_fim = min(sub_ini + max_paginas - 1, fim)
+                sub_pgs = sub_fim - sub_ini + 1
+                label = f"{topico} ({parte + 1}/{total_partes})" if topico else f"Parte {parte + 1}/{total_partes}"
+                blocos.append({
+                    "Pagina_Inicial": sub_ini,
+                    "Pagina_Final": sub_fim,
+                    "Paginas": sub_pgs,
+                    "Topicos": [label],
+                })
+            continue
+
+        # Tópico cabe no bloco atual
         if bloco_inicio is None:
             bloco_inicio, bloco_fim, paginas = inicio, fim, pgs
             topicos_bloco = [topico] if topico else []
@@ -130,13 +166,11 @@ def montar_blocos(df_aula: pd.DataFrame, max_paginas: int = 50) -> list[dict]:
             if topico and topico not in topicos_bloco:
                 topicos_bloco.append(topico)
         else:
-            blocos.append({"Pagina_Inicial": bloco_inicio, "Pagina_Final": bloco_fim, "Paginas": paginas, "Topicos": topicos_bloco})
+            fechar_bloco()
             bloco_inicio, bloco_fim, paginas = inicio, fim, pgs
             topicos_bloco = [topico] if topico else []
 
-    if bloco_inicio is not None:
-        blocos.append({"Pagina_Inicial": bloco_inicio, "Pagina_Final": bloco_fim, "Paginas": paginas, "Topicos": topicos_bloco})
-
+    fechar_bloco()
     return blocos
 
 
@@ -153,10 +187,15 @@ def gerar_planilha(
         vazio.to_excel(arquivo_saida, index=False)
         return vazio
 
-    for col in ["Disciplina", "Arquivo", "Nome_Arquivo_Sugerido", "Assunto_Geral",
+    for col in ["Disciplina", "Arquivo", "Nome_Arquivo", "Nome_Arquivo_Sugerido", "Assunto_Geral",
                 "Descricao_Conteudo_Site", "Topico_Interno", "Detalhe_Intervalo", "Link_Aula"]:
         if col not in df.columns:
             df[col] = ""
+
+    # Garante que Nome_Arquivo sempre tem o basename (compatibilidade com runs antigos)
+    df["Nome_Arquivo"] = df.apply(
+        lambda r: r["Nome_Arquivo"] if r["Nome_Arquivo"] else os.path.basename(r["Arquivo"]), axis=1
+    )
 
     def disciplina_fmt(v):
         v = limpar_texto(v)
@@ -177,8 +216,9 @@ def gerar_planilha(
         lambda x: pd.Series(extrair_intervalo(x))
     )
     df["Paginas_Calculadas"] = (df["Pagina_Final"] - df["Pagina_Inicial"] + 1).clip(lower=0)
+    # extrair_aula usa Nome_Arquivo (basename) para não confundir com caminhos completos
     df["Aula_Ref"] = df.apply(
-        lambda row: extrair_aula(row.get("Arquivo", ""), row.get("Nome_Arquivo_Sugerido", ""), row.get("Descricao_Conteudo_Site", "")),
+        lambda row: extrair_aula(row.get("Nome_Arquivo", ""), row.get("Nome_Arquivo_Sugerido", ""), row.get("Descricao_Conteudo_Site", "")),
         axis=1,
     )
     df["Ordem_Origem"] = range(len(df))
