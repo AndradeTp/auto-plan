@@ -19,6 +19,32 @@ st.set_page_config(
 )
 
 # ──────────────────────────────────────────────
+# AUTENTICAÇÃO POR TOKEN
+# ──────────────────────────────────────────────
+def _checar_token():
+    tokens_validos = st.secrets.get("TOKENS_VALIDOS", [])
+
+    if st.session_state.get("autenticado"):
+        return  # já passou pela verificação nesta sessão
+
+    st.markdown("## 🔐 Auto Plan — Acesso Restrito")
+    st.markdown("Insira seu token de acesso para continuar.")
+    token_input = st.text_input("Token de acesso", type="password", placeholder="••••••••")
+    entrar = st.button("Entrar", type="primary")
+
+    if entrar:
+        if token_input in tokens_validos:
+            st.session_state["autenticado"] = True
+            st.rerun()
+        else:
+            st.error("❌ Token inválido. Contate o administrador.")
+
+    st.stop()
+
+
+_checar_token()
+
+# ──────────────────────────────────────────────
 # CSS CUSTOMIZADO
 # ──────────────────────────────────────────────
 st.markdown("""
