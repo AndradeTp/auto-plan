@@ -9,14 +9,28 @@ import requests
 # ModuleNotFoundError no Streamlit Cloud antes do ambiente estar pronto.
 # Python cacheia os módulos, então múltiplas chamadas não têm custo extra.
 def _sel():
-    from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.chrome.service import Service
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.common.keys import Keys
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    return webdriver, Options, Service, By, Keys, WebDriverWait, EC
+    import sys
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.common.keys import Keys
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        return webdriver, Options, Service, By, Keys, WebDriverWait, EC
+    except ImportError as e:
+        # Diagnóstico detalhado para debug no Streamlit Cloud
+        import subprocess
+        pip_list = subprocess.run(
+            [sys.executable, "-m", "pip", "list"],
+            capture_output=True, text=True
+        )
+        raise ImportError(
+            f"selenium não encontrado. Python={sys.version}, "
+            f"Executable={sys.executable}, "
+            f"Pacotes instalados: {pip_list.stdout[:500]}"
+        ) from e
 
 
 USER_AGENT = (
