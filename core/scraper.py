@@ -55,11 +55,14 @@ def iniciar_driver(download_dir: str):
     CHROMIUM_PATHS = [
         "/usr/bin/chromium",
         "/usr/bin/chromium-browser",
+        "/snap/bin/chromium",
     ]
     CHROMEDRIVER_PATHS = [
         "/usr/bin/chromedriver",
+        "/usr/bin/chromium-chromedriver",
         "/usr/lib/chromium/chromedriver",
         "/usr/lib/chromium-browser/chromedriver",
+        "/usr/lib/chromium-chromedriver/chromedriver",
     ]
 
     chromium_bin = next((p for p in CHROMIUM_PATHS if os.path.exists(p)), None)
