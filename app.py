@@ -13,10 +13,28 @@ from core.drive_client import upload_excel
 # ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Auto Plan",
-    page_icon="https://img.icons8.com/ios/50/ffffff/document--v1.png",
+    page_icon="https://img.icons8.com/ios/50/8B6F47/document--v1.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ──────────────────────────────────────────────
+# DESIGN TOKENS
+# ──────────────────────────────────────────────
+# Cores do tema (espelhadas do HTML original)
+OFF_WHITE = "#F7F5F2"
+OFF_WHITE_DARK = "#EFEDE9"
+PAPER = "#FAF9F7"
+INK_DARK = "#1A1916"
+INK_MID = "#4A4843"
+INK_LIGHT = "#8A8784"
+BORDER = "#E2DDD8"
+BORDER_MID = "#CBC5BE"
+ACCENT = "#8B6F47"
+ACCENT_HOVER = "#7A6040"
+SUCCESS = "#3DAA73"
+SUCCESS_BG = "rgba(61,170,115,0.08)"
+SUCCESS_BORDER = "rgba(61,170,115,0.25)"
 
 # ──────────────────────────────────────────────
 # AUTENTICAÇÃO POR TOKEN
@@ -27,35 +45,60 @@ def _checar_token():
     if st.session_state.get("autenticado"):
         return
 
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .login-card {
-            max-width: 420px;
-            margin: 80px auto 0 auto;
-            background: #1e2535;
-            border: 1px solid #2d3748;
-            border-radius: 16px;
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap');
+        .stApp {{ background-color: {OFF_WHITE}; }}
+        .login-wrap {{
+            max-width: 400px;
+            margin: 100px auto 0 auto;
+            text-align: center;
+        }}
+        .login-logo {{
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: {INK_DARK};
+            letter-spacing: -0.02em;
+            margin-bottom: 32px;
+        }}
+        .login-logo em {{
+            font-style: italic;
+            color: {ACCENT};
+        }}
+        .login-card {{
+            background: {PAPER};
+            border: 1px solid {BORDER};
+            border-radius: 8px;
             padding: 40px 36px;
-        }
-        .login-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #e2e8f0;
-            margin-bottom: 6px;
-        }
-        .login-sub {
+            text-align: left;
+        }}
+        .login-title {{
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: {INK_DARK};
+            margin-bottom: 4px;
+        }}
+        .login-sub {{
+            font-family: 'DM Sans', sans-serif;
             font-size: 14px;
-            color: #718096;
+            color: {INK_LIGHT};
             margin-bottom: 28px;
-        }
+            font-weight: 300;
+            line-height: 1.6;
+        }}
     </style>
-    <div class="login-card">
-        <div class="login-title">Auto Plan</div>
-        <div class="login-sub">Acesso restrito. Insira seu token para continuar.</div>
+    <div class="login-wrap">
+        <div class="login-logo">Auto<em>Plan</em></div>
+        <div class="login-card">
+            <div class="login-title">Acesso restrito</div>
+            <div class="login-sub">Insira seu token para continuar.</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    token_input = st.text_input("Token de acesso", type="password", placeholder="••••••••", label_visibility="collapsed")
+    token_input = st.text_input("Token de acesso", type="password", placeholder="Token de acesso", label_visibility="collapsed")
     entrar = st.button("Entrar", type="primary", use_container_width=True)
 
     if entrar:
@@ -63,7 +106,7 @@ def _checar_token():
             st.session_state["autenticado"] = True
             st.rerun()
         else:
-            st.error("Token inválido. Contate o administrador.")
+            st.error("Token invalido. Contate o administrador.")
 
     st.stop()
 
@@ -71,109 +114,345 @@ def _checar_token():
 _checar_token()
 
 # ──────────────────────────────────────────────
-# CSS CUSTOMIZADO
+# CSS GLOBAL
 # ──────────────────────────────────────────────
-st.markdown("""
+st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap');
 
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    html, body, [class*="css"] {{
+        font-family: 'DM Sans', sans-serif;
+        color: {INK_DARK};
+    }}
 
-    .stApp { background-color: #0f1117; }
-    section[data-testid="stSidebar"] { background-color: #161b27; border-right: 1px solid #2d3748; }
+    /* ── Fundo geral ── */
+    .stApp {{
+        background-color: {OFF_WHITE};
+    }}
 
-    /* Cards de métricas */
-    div[data-testid="metric-container"] {
-        background: #1e2535;
-        border: 1px solid #2d3748;
-        border-radius: 12px;
-        padding: 16px;
-    }
-    div[data-testid="metric-container"] label { color: #718096 !important; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
-    div[data-testid="metric-container"] [data-testid="metric-value"] { color: #e2e8f0 !important; font-size: 24px; font-weight: 700; }
+    /* ── Sidebar ── */
+    section[data-testid="stSidebar"] {{
+        background-color: {PAPER};
+        border-right: 1px solid {BORDER};
+    }}
+    section[data-testid="stSidebar"] .stMarkdown p,
+    section[data-testid="stSidebar"] .stMarkdown span {{
+        color: {INK_MID};
+    }}
 
-    /* Botão principal */
-    div.stButton > button[kind="primary"] {
-        background: #4f46e5;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 11px 28px;
-        font-size: 14px;
-        font-weight: 600;
-        width: 100%;
-        letter-spacing: .02em;
-        transition: background 0.2s;
-    }
-    div.stButton > button[kind="primary"]:hover { background: #4338ca; }
+    /* ── Headings ── */
+    h1 {{
+        font-family: 'Playfair Display', Georgia, serif !important;
+        font-weight: 500 !important;
+        color: {INK_DARK} !important;
+        letter-spacing: -0.025em !important;
+    }}
+    h3 {{
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 11px !important;
+        font-weight: 500 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        color: {INK_LIGHT} !important;
+    }}
 
-    /* Log box */
-    .log-box {
-        background: #0d1117;
-        border: 1px solid #2d3748;
+    /* ── Dividers ── */
+    hr {{
+        border-color: {BORDER} !important;
+    }}
+
+    /* ── Inputs ── */
+    input, textarea, select {{
+        background: #fff !important;
+        color: {INK_DARK} !important;
+        border: 1px solid {BORDER_MID} !important;
+        border-radius: 4px !important;
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 15px !important;
+    }}
+    input:focus, textarea:focus, select:focus {{
+        border-color: {ACCENT} !important;
+        box-shadow: none !important;
+    }}
+
+    /* ── Botão principal ── */
+    div.stButton > button[kind="primary"],
+    div.stButton > button[data-testid="stBaseButton-primary"] {{
+        background: {ACCENT} !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 4px !important;
+        padding: 14px 28px !important;
+        font-size: 15px !important;
+        font-weight: 400 !important;
+        font-family: 'DM Sans', sans-serif !important;
+        letter-spacing: -0.01em !important;
+        transition: opacity 0.15s !important;
+    }}
+    div.stButton > button[kind="primary"]:hover,
+    div.stButton > button[data-testid="stBaseButton-primary"]:hover {{
+        background: {ACCENT_HOVER} !important;
+        opacity: 0.9 !important;
+    }}
+
+    /* ── Botão secundário ── */
+    div.stButton > button[kind="secondary"],
+    div.stButton > button[data-testid="stBaseButton-secondary"],
+    div.stDownloadButton > button {{
+        background: none !important;
+        color: {INK_DARK} !important;
+        border: 1px solid {BORDER_MID} !important;
+        border-radius: 4px !important;
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 14px !important;
+        transition: border-color 0.15s !important;
+    }}
+    div.stDownloadButton > button:hover {{
+        border-color: {ACCENT} !important;
+    }}
+
+    /* ── Métricas ── */
+    div[data-testid="metric-container"] {{
+        background: {PAPER};
+        border: 1px solid {BORDER};
         border-radius: 8px;
         padding: 16px 20px;
-        font-family: 'Menlo', 'Courier New', monospace;
-        font-size: 12px;
-        color: #8b949e;
-        height: 300px;
-        overflow-y: auto;
-        white-space: pre-wrap;
-        line-height: 1.6;
-    }
+    }}
+    div[data-testid="metric-container"] label {{
+        color: {INK_LIGHT} !important;
+        font-size: 11px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        font-family: 'DM Sans', sans-serif !important;
+        font-weight: 500 !important;
+    }}
+    div[data-testid="metric-container"] [data-testid="metric-value"] {{
+        color: {INK_DARK} !important;
+        font-family: 'Playfair Display', Georgia, serif !important;
+        font-size: 28px !important;
+        font-weight: 500 !important;
+    }}
 
-    /* Títulos */
-    h1 { color: #e2e8f0 !important; font-weight: 700 !important; font-size: 24px !important; }
-    h3 { color: #718096 !important; font-size: 13px !important; font-weight: 600 !important;
-         text-transform: uppercase; letter-spacing: .08em; }
+    /* ── DataFrame / tabela ── */
+    .stDataFrame {{
+        border: 1px solid {BORDER} !important;
+        border-radius: 6px !important;
+    }}
 
-    /* Sidebar labels */
-    .sidebar-label {
+    /* ── Expander ── */
+    .streamlit-expanderHeader {{
+        font-family: 'DM Sans', sans-serif !important;
+        font-size: 13px !important;
+        color: {INK_MID} !important;
+        font-weight: 500 !important;
+    }}
+
+    /* ── Slider ── */
+    .stSlider > div > div {{
+        color: {INK_LIGHT} !important;
+    }}
+
+    /* ── Sidebar labels ── */
+    .sidebar-label {{
+        font-family: 'DM Sans', sans-serif;
         font-size: 11px;
-        font-weight: 600;
-        color: #718096;
+        font-weight: 500;
+        color: {INK_LIGHT};
         text-transform: uppercase;
-        letter-spacing: .08em;
+        letter-spacing: 0.08em;
         margin-bottom: 6px;
-    }
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }}
 
-    /* Badge */
-    .badge {
-        display: inline-block;
-        background: #1e2535;
-        border: 1px solid #2d3748;
-        border-radius: 6px;
-        padding: 4px 10px;
+    /* ── Log de execucao ── */
+    .log-container {{
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }}
+    .log-line {{
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 4px;
+        transition: background 0.3s;
+    }}
+    .log-line:last-child {{
+        background: {OFF_WHITE_DARK};
+    }}
+    .log-line .log-icon {{
+        flex-shrink: 0;
+        margin-top: 2px;
+        color: {INK_LIGHT};
+    }}
+    .log-line:last-child .log-icon {{
+        color: {ACCENT};
+    }}
+    .log-line .log-text {{
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: {INK_DARK};
+        line-height: 1.4;
+    }}
+    .log-line .log-detail {{
         font-size: 12px;
-        color: #718096;
-        font-weight: 500;
-    }
+        color: {INK_LIGHT};
+        margin-top: 2px;
+    }}
 
-    /* Divider */
-    hr { border-color: #2d3748 !important; }
-
-    /* Inputs */
-    input, textarea, select { background: #1e2535 !important; color: #e2e8f0 !important; border-color: #2d3748 !important; }
-
-    /* Status banners */
-    .status-running {
-        background: #1e2535;
-        border: 1px solid #4f46e5;
-        border-radius: 8px;
-        padding: 10px 16px;
+    /* ── Status banners ── */
+    .status-running {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        font-family: 'DM Sans', sans-serif;
         font-size: 13px;
-        color: #a5b4fc;
+        color: {INK_LIGHT};
         font-weight: 500;
-    }
-    .status-done {
-        background: #0d2b1e;
-        border: 1px solid #166534;
-        border-radius: 8px;
-        padding: 10px 16px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }}
+    .status-done {{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 20px 24px;
+        background: {SUCCESS_BG};
+        border: 1px solid {SUCCESS_BORDER};
+        border-radius: 6px;
+    }}
+    .status-done .check-circle {{
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(61,170,115,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }}
+    .status-done .status-text {{
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: {INK_DARK};
+    }}
+    .status-done .status-sub {{
+        font-size: 12px;
+        color: {INK_LIGHT};
+        margin-top: 3px;
+    }}
+
+    /* ── Progress bar ── */
+    .progress-wrap {{
+        margin-bottom: 28px;
+    }}
+    .progress-header {{
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }}
+    .progress-label {{
+        font-family: 'DM Sans', sans-serif;
         font-size: 13px;
-        color: #4ade80;
+        color: {INK_LIGHT};
         font-weight: 500;
-    }
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }}
+    .progress-pct {{
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        color: {INK_DARK};
+        font-weight: 500;
+    }}
+    .progress-track {{
+        height: 3px;
+        background: {BORDER};
+        border-radius: 100px;
+        overflow: hidden;
+    }}
+    .progress-fill {{
+        height: 100%;
+        background: {ACCENT};
+        border-radius: 100px;
+        transition: width 0.6s ease;
+    }}
+
+    /* ── Info panel (como funciona) ── */
+    .info-panel {{
+        background: {PAPER};
+        border: 1px solid {BORDER};
+        border-radius: 8px;
+        padding: 36px;
+    }}
+    .info-panel-title {{
+        font-family: 'Playfair Display', Georgia, serif;
+        font-style: italic;
+        color: {ACCENT};
+        font-size: 21px;
+        margin-bottom: 20px;
+    }}
+    .info-step {{
+        display: flex;
+        gap: 20px;
+        padding: 20px 0;
+        border-bottom: 1px solid {BORDER};
+    }}
+    .info-step:last-child {{
+        border-bottom: none;
+    }}
+    .info-step-num {{
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: {ACCENT};
+        flex-shrink: 0;
+        margin-top: 2px;
+        opacity: 0.7;
+    }}
+    .info-step-title {{
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: {INK_DARK};
+        margin-bottom: 6px;
+    }}
+    .info-step-desc {{
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        color: {INK_LIGHT};
+        line-height: 1.6;
+    }}
+    .info-footer {{
+        margin-top: 20px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12px;
+        color: {INK_LIGHT};
+        line-height: 1.7;
+    }}
+
+    /* ── Badge ── */
+    .badge {{
+        display: inline-block;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12px;
+        color: {INK_LIGHT};
+        font-weight: 400;
+        letter-spacing: 0.04em;
+    }}
+
+    /* ── Spinner SVG ── */
+    @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
+    .spin {{ animation: spin 1s linear infinite; }}
+
+    /* ── Check SVG ── */
+    .check-svg {{ color: {INK_LIGHT}; }}
+    .check-svg-done {{ color: {SUCCESS}; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -181,83 +460,210 @@ st.markdown("""
 # SIDEBAR
 # ──────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0 16px 0;">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </svg>
-        <span style="font-size:17px;font-weight:700;color:#e2e8f0;">Auto Plan</span>
+    st.markdown(f"""
+    <div style="padding:12px 0 20px 0;">
+        <span style="font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:600;color:{INK_DARK};letter-spacing:-0.02em;">
+            Auto<em style="font-style:italic;color:{ACCENT};">Plan</em>
+        </span>
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
 
-    st.markdown('<div class="sidebar-label">Curso</div>', unsafe_allow_html=True)
+    # Link do curso
+    st.markdown(f"""<div class="sidebar-label">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4H4a3 3 0 000 6h2M10 4h2a3 3 0 010 6h-2M5.5 8h5" stroke="{INK_LIGHT}" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        Link do curso
+    </div>""", unsafe_allow_html=True)
     url_pacote = st.text_input(
         "URL do Pacote",
-        placeholder="https://www.estrategiaconcursos.com.br/app/dashboard/pacote/...",
+        placeholder="https://www.estrategiaconcursos.com.br/...",
         label_visibility="collapsed",
     )
 
-    st.markdown('<div class="sidebar-label" style="margin-top:16px;">Google Drive</div>', unsafe_allow_html=True)
+    # Pasta do Drive
+    st.markdown(f"""<div class="sidebar-label" style="margin-top:20px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 4.5A1.5 1.5 0 013.5 3h3l1.5 2H13a1.5 1.5 0 011.5 1.5v5A1.5 1.5 0 0113 13H3a1.5 1.5 0 01-1.5-1.5v-7z" stroke="{INK_LIGHT}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Pasta no Drive
+    </div>""", unsafe_allow_html=True)
     drive_folder = st.text_input("Pasta de destino", value="Auto Plan", label_visibility="collapsed")
+
+    # Nome do arquivo
+    st.markdown(f"""<div class="sidebar-label" style="margin-top:20px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M9 2H4a1.5 1.5 0 00-1.5 1.5v9A1.5 1.5 0 004 14h8a1.5 1.5 0 001.5-1.5V6.5L9 2z" stroke="{INK_LIGHT}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 2v4.5H13.5" stroke="{INK_LIGHT}" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        Nome da planilha
+    </div>""", unsafe_allow_html=True)
     output_filename = st.text_input("Nome do arquivo", value="plano_estudos.xlsx", label_visibility="collapsed")
 
     st.divider()
 
-    with st.expander("Configurações avançadas"):
-        max_paginas = st.slider("Máx. páginas por bloco", 20, 100, 50)
+    with st.expander("Configuracoes avancadas"):
+        max_paginas = st.slider("Max. paginas por bloco", 20, 100, 50)
         sufixo = st.text_input("Sufixo das disciplinas", value=" - Eng. Petro. Petrobras")
         model_name = st.selectbox(
-            "Modelo de análise",
+            "Modelo de analise",
             ["models/gemini-2.5-flash", "models/gemini-2.0-flash", "models/gemini-1.5-pro"],
             label_visibility="collapsed",
         )
 
     st.divider()
-    st.markdown('<div class="badge">Credenciais protegidas</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="badge">Por: Thiago Paiva</div>', unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
-# CABEÇALHO
+# LAYOUT PRINCIPAL — 2 colunas
 # ──────────────────────────────────────────────
-col_title, col_badge = st.columns([5, 1])
-with col_title:
-    st.markdown("""
-    <div style="padding: 8px 0 4px 0;">
-        <div style="font-size:26px;font-weight:700;color:#e2e8f0;">Auto Plan</div>
-        <div style="font-size:14px;color:#718096;margin-top:4px;">Geração automatizada de planos de estudo a partir de cursos online.</div>
+col_main, col_info = st.columns([3, 2], gap="large")
+
+with col_main:
+    # Titulo
+    st.markdown(f"""
+    <div style="margin-bottom:8px;">
+        <h1 style="font-size:clamp(28px,3vw,40px) !important;line-height:1.15 !important;margin:0 !important;">
+            Novo plano<br>
+            <em style="font-style:italic;color:{ACCENT};">de estudos</em>
+        </h1>
+        <p style="margin-top:12px;font-size:15px;color:{INK_LIGHT};line-height:1.6;font-weight:300;">
+            Preencha os parametros na barra lateral e clique em gerar.
+        </p>
     </div>
     """, unsafe_allow_html=True)
-with col_badge:
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="badge" style="float:right;">por Thiago Paiva</div>', unsafe_allow_html=True)
 
-st.divider()
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-# ──────────────────────────────────────────────
-# ÁREA PRINCIPAL
-# ──────────────────────────────────────────────
-col_btn, col_status = st.columns([1, 3])
+    # Botao principal
+    iniciar = st.button("Gerar plano", type="primary", disabled=not url_pacote, use_container_width=True)
 
-with col_btn:
-    iniciar = st.button("Gerar Plano", type="primary", disabled=not url_pacote)
-
-with col_status:
+    # Placeholders
+    progress_placeholder = st.empty()
     status_placeholder = st.empty()
+    log_placeholder = st.empty()
 
-# Métricas
-m1, m2, m3, m4 = st.columns(4)
-metric_pdfs    = m1.empty()
-metric_topicos = m2.empty()
-metric_blocos  = m3.empty()
-metric_status  = m4.empty()
+    # Metricas
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    m1, m2, m3, m4 = st.columns(4)
+    metric_pdfs    = m1.empty()
+    metric_topicos = m2.empty()
+    metric_blocos  = m3.empty()
+    metric_status  = m4.empty()
 
-# Log
-st.markdown("### Log de execução")
-log_placeholder = st.empty()
+    # Resultado
+    resultado_placeholder = st.empty()
 
-# Resultado
-resultado_placeholder = st.empty()
+with col_info:
+    st.markdown(f"""
+    <div class="info-panel">
+        <div class="info-panel-title">Como funciona</div>
+
+        <div class="info-step">
+            <span class="info-step-num">01</span>
+            <div>
+                <div class="info-step-title">Link do curso</div>
+                <div class="info-step-desc">Cole o link do curso na plataforma Estrategia Concursos. O script extrai toda a estrutura de aulas.</div>
+            </div>
+        </div>
+
+        <div class="info-step">
+            <span class="info-step-num">02</span>
+            <div>
+                <div class="info-step-title">Pasta no Drive</div>
+                <div class="info-step-desc">Informe o caminho da pasta onde o plano sera salvo no Google Drive.</div>
+            </div>
+        </div>
+
+        <div class="info-step">
+            <span class="info-step-num">03</span>
+            <div>
+                <div class="info-step-title">Nome da planilha</div>
+                <div class="info-step-desc">Defina o nome do arquivo .xlsx que sera gerado. Use nomes descritivos para facil localizacao.</div>
+            </div>
+        </div>
+
+        <div class="info-footer">
+            O plano gerado tera blocos de estudo por volta de 50 paginas.<br>
+            Ao fim, lhe sera enviado o link do seu plano.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ──────────────────────────────────────────────
+# HELPERS DE LOG VISUAL
+# ──────────────────────────────────────────────
+CHECK_SVG = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+SPIN_SVG = f'<svg class="spin" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="{INK_LIGHT}" stroke-width="1.5" stroke-opacity="0.2"/><path d="M8 2a6 6 0 016 6" stroke="{ACCENT}" stroke-width="1.5" stroke-linecap="round"/></svg>'
+
+def render_log_html(steps: list[dict], is_done: bool = False) -> str:
+    """Renderiza log como lista de etapas com checkmarks."""
+    html = '<div class="log-container">'
+    for i, step in enumerate(steps):
+        is_last = i == len(steps) - 1
+        if is_done and is_last:
+            icon_class = "check-svg-done"
+        elif is_last and not is_done:
+            icon_class = ""
+            icon = SPIN_SVG
+        else:
+            icon_class = "check-svg"
+
+        if not (is_last and not is_done):
+            icon = f'<span class="{icon_class}">{CHECK_SVG}</span>'
+
+        bg = f"background:{OFF_WHITE_DARK};" if is_last and not is_done else ""
+        html += f"""
+        <div class="log-line" style="{bg}">
+            <span class="log-icon">{icon}</span>
+            <div>
+                <div class="log-text">{step['label']}</div>
+                <div class="log-detail">{step.get('detail', '')}</div>
+            </div>
+        </div>"""
+
+    if not is_done and steps:
+        html += f"""
+        <div class="log-line">
+            <span class="log-icon">{SPIN_SVG}</span>
+            <div class="log-text" style="color:{INK_LIGHT};font-size:13px;">Processando...</div>
+        </div>"""
+
+    html += '</div>'
+    return html
+
+
+def render_progress_html(pct: int) -> str:
+    return f"""
+    <div class="progress-wrap">
+        <div class="progress-header">
+            <span class="progress-label">Progresso</span>
+            <span class="progress-pct">{pct}%</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" style="width:{pct}%;"></div>
+        </div>
+    </div>"""
+
+
+def render_success_html(drive_link: str = "") -> str:
+    link_text = ""
+    if drive_link:
+        link_text = f'<div class="status-sub">Disponivel em: <a href="{drive_link}" target="_blank" style="color:{ACCENT};text-decoration:none;">Link do Drive</a></div>'
+
+    return f"""
+    <div class="status-done">
+        <div class="check-circle">
+            <span class="check-svg-done">{CHECK_SVG}</span>
+        </div>
+        <div>
+            <div class="status-text">Plano criado com sucesso</div>
+            {link_text}
+        </div>
+    </div>"""
+
 
 # ──────────────────────────────────────────────
 # EXECUÇÃO
@@ -268,26 +674,41 @@ if iniciar:
         senha   = st.secrets["SUA_SENHA"]
         api_key = st.secrets["GOOGLE_API_KEY"]
     except KeyError as e:
-        st.error(f"Configuração ausente: {e}. Verifique as variáveis de ambiente.")
+        st.error(f"Configuracao ausente: {e}. Verifique as variaveis de ambiente.")
         st.stop()
 
-    log_lines = []
+    log_steps = []
+    total_steps = 6  # estimativa
 
     def log(msg: str):
-        log_lines.append(msg)
-        log_placeholder.markdown(
-            '<div class="log-box">' + "<br>".join(log_lines[-40:]) + "</div>",
-            unsafe_allow_html=True,
-        )
+        """Adiciona uma etapa visual ao log."""
+        # Extrai label e detail da mensagem
+        if " — " in msg:
+            parts = msg.split(" — ", 1)
+            label, detail = parts[0], parts[1]
+        elif "=" in msg and len(msg) > 10 and msg.count("=") > 5:
+            return  # Ignora linhas de separador
+        elif msg.strip() == "":
+            return
+        else:
+            label = msg.strip()
+            detail = ""
 
-    status_placeholder.markdown('<div class="status-running">Processando...</div>', unsafe_allow_html=True)
-    metric_status.metric("Status", "Em andamento")
+        log_steps.append({"label": label, "detail": detail})
+        pct = min(95, int(len(log_steps) / max(total_steps, len(log_steps) + 2) * 95))
+        progress_placeholder.markdown(render_progress_html(pct), unsafe_allow_html=True)
+        log_placeholder.markdown(render_log_html(log_steps, is_done=False), unsafe_allow_html=True)
+
+    # Status inicial
+    status_placeholder.markdown(
+        f'<div class="status-running">{SPIN_SVG} <span>Processando...</span></div>',
+        unsafe_allow_html=True,
+    )
+    progress_placeholder.markdown(render_progress_html(0), unsafe_allow_html=True)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # ── FASE 1 ────────────────────────────────────────
-        log("=" * 50)
-        log("FASE 1 — Autenticação e download de materiais")
-        log("=" * 50)
+        # ── FASE 1 ─────────────────────────────────
+        log("Autenticando na plataforma — Estrategia Concursos")
 
         try:
             pdfs = executar_scraping(
@@ -301,20 +722,16 @@ if iniciar:
             st.error(f"Erro no download: {e}")
             st.stop()
 
-        metric_pdfs.metric("Arquivos baixados", len(pdfs))
-        log(f"\n{len(pdfs)} arquivos prontos para análise")
+        metric_pdfs.metric("Arquivos", len(pdfs))
+        log(f"{len(pdfs)} arquivos prontos — Para analise")
 
-        # ── FASE 2 ────────────────────────────────────────
-        log("\n" + "=" * 50)
-        log("FASE 2 — Análise de conteúdo")
-        log("=" * 50)
-
+        # ── FASE 2 ─────────────────────────────────
         dados_finais = []
         total_topicos = 0
 
         for i, caminho in enumerate(pdfs):
             status_placeholder.markdown(
-                f'<div class="status-running">Analisando arquivo {i+1} de {len(pdfs)}...</div>',
+                f'<div class="status-running">{SPIN_SVG} <span>Analisando arquivo {i+1} de {len(pdfs)}...</span></div>',
                 unsafe_allow_html=True,
             )
             dados_web = {
@@ -332,13 +749,11 @@ if iniciar:
             )
             dados_finais.extend(resultado)
             total_topicos += len(resultado)
-            metric_topicos.metric("Tópicos identificados", total_topicos)
+            metric_topicos.metric("Topicos", total_topicos)
             time.sleep(1)
 
-        # ── FASE 3 ────────────────────────────────────────
-        log("\n" + "=" * 50)
-        log("FASE 3 — Gerando planilha")
-        log("=" * 50)
+        # ── FASE 3 ─────────────────────────────────
+        log("Gerando planilha — Formatando colunas")
 
         output_path = os.path.join(tmp_dir, output_filename)
 
@@ -350,33 +765,34 @@ if iniciar:
         )
 
         total_blocos = len(df_final)
-        metric_blocos.metric("Linhas geradas", total_blocos)
-        log(f"Planilha gerada: {total_blocos} linhas")
+        metric_blocos.metric("Linhas", total_blocos)
 
-        # ── FASE 4 ────────────────────────────────────────
-        log("\n" + "=" * 50)
-        log("FASE 4 — Enviando para o Google Drive")
-        log("=" * 50)
+        # ── FASE 4 ─────────────────────────────────
+        log("Enviando para o Google Drive — Salvando arquivo")
 
         drive_link = ""
         try:
             drive_link = upload_excel(output_path, drive_folder, output_filename)
-            log("Arquivo salvo no Drive")
+            log("Plano criado com sucesso! — Gerando link")
         except Exception as e:
-            log(f"Aviso: Upload para Drive falhou — {e}")
+            log(f"Upload para Drive falhou — {e}")
 
-        # ── RESULTADO ─────────────────────────────────────
-        status_placeholder.markdown('<div class="status-done">Concluído com sucesso</div>', unsafe_allow_html=True)
-        metric_status.metric("Status", "Concluído")
-
-        log("\nProcesso finalizado.")
+        # ── RESULTADO ──────────────────────────────
+        progress_placeholder.markdown(render_progress_html(100), unsafe_allow_html=True)
+        log_placeholder.markdown(render_log_html(log_steps, is_done=True), unsafe_allow_html=True)
+        status_placeholder.markdown(render_success_html(drive_link), unsafe_allow_html=True)
+        metric_status.metric("Status", "Concluido")
 
         with open(output_path, "rb") as f:
             excel_bytes = f.read()
 
     with resultado_placeholder.container():
         st.divider()
-        st.markdown("### Resultado")
+        st.markdown(f"""
+        <h1 style="font-size:24px !important;">
+            Resultado
+        </h1>
+        """, unsafe_allow_html=True)
 
         col_dl, col_drive = st.columns(2)
         with col_dl:
@@ -391,7 +807,7 @@ if iniciar:
             if drive_link:
                 st.link_button("Abrir no Google Drive", drive_link, use_container_width=True)
 
-        st.markdown("### Preview")
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
         st.dataframe(
             df_final[["Disciplina", "Assunto", "Páginas ou Minutos de Vídeo", "Referência", "Link de Estudo"]].head(20),
             use_container_width=True,
